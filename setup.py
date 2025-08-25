@@ -17,7 +17,7 @@ setup(
     url="xxx",
     packages=find_packages(),
     install_requires=requirements,
-    python_requires='==3.9.0',
+    python_requires='==3.11.0',
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
