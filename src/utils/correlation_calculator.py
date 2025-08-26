@@ -5,7 +5,7 @@ make_logger = get_logger(__name__)
 
 
 # Load the CSV files
-def get_kendall(Grand_truth_accuracy_df, expressivity_score_df, rank_by=["mean","Normalized Expressivity Score"], database_name="cifar10"):
+def get_kendall(Grand_truth_accuracy_df, expressivity_score_df, method="mean", type_of_score="Normalized Expressivity Score", database_name="cifar10"):
     """
     Calculate Kendall's Tau correlation between model accuracy and expressivity scores .
     Args:
@@ -27,7 +27,7 @@ def get_kendall(Grand_truth_accuracy_df, expressivity_score_df, rank_by=["mean",
     # we need to assign ranks based on their order in each CSV.
     # Assign ranks based on order in each CSV (starting from 1)
     merged_df['rank_accuracy'] = merged_df['Accuracy'].rank(ascending=False, method='min')
-    merged_df['rank_exp_score'] = merged_df[f'{rank_by[0]}_{rank_by[1]}'].rank(ascending=False, method='min')
+    merged_df['rank_exp_score'] = merged_df[f'{method}_{type_of_score}'].rank(ascending=False, method='min')
 
     # Compute Kendall's Tau correlation between the two ranks
     tau, p_value = kendalltau(merged_df['rank_accuracy'], merged_df['rank_exp_score'])
