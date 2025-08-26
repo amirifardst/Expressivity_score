@@ -2,12 +2,9 @@ import datetime
 import os
 import pandas as pd
 from src.logging.logger import get_logger
-from IPython.display import display
 from datetime import datetime
-import numpy as np
-
-
 make_logger = get_logger(__name__)
+
 
 def save_exp_score(exp_score_df, model_name, database_name):
     """
