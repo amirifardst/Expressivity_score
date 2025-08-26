@@ -23,10 +23,10 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True):
 
     num_architectures = len(fmap_dict.keys())
     architectures = list(fmap_dict.keys())
-    make_logger.info("=*"*100)
-    make_logger.info(f"Calculating expressivity score with constant: {constant} has been started")
+    make_logger.info("=*"*20)
+    make_logger.info(f"Calculating expressivity score has been started")
     make_logger.info(f"Number of architectures: {num_architectures}")
-    make_logger.info("=*"*100)
+    make_logger.info("=*"*20)
     
     all_exp_score_dict = {}
 
@@ -43,7 +43,7 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True):
             try:
                 layer_name = fmap_dict[architectures[i]]['layer_names'][j]
                 layer_detail = fmap_dict[architectures[i]]['layer_details'][j]
-                make_logger.info(f"Processing layer_{j} named: {layer_name} with detail: {layer_detail}")
+                # make_logger.info(f"Processing layer_{j} named: {layer_name} with detail: {layer_detail}")
 
                 # check if fmap is a TensorFlow tensor
                 if not isinstance(fmap, tf.Tensor):
@@ -56,14 +56,14 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True):
                     spatial_size = w * h
                     n = b * w * h
                     fmap_2d = tf.reshape(fmap, (n, c))
-                    make_logger.info(f'For this layer--> [b,c,w,h]: [{b},{c},{w},{h}], spatial size: {spatial_size}, fmap_2d shape: {fmap_2d.shape}')
+                    # make_logger.info(f'For this layer--> [b,c,w,h]: [{b},{c},{w},{h}], spatial size: {spatial_size}, fmap_2d shape: {fmap_2d.shape}')
 
                 
                 elif fmap.ndim == 2:  # If fmap is already 2D, assume shape is (n, c)
                     n, c = fmap.shape
                     spatial_size = 1 
                     fmap_2d = fmap
-                    make_logger.info(f'For this layer--> [b,c,w,h]: [{b},{c},{w},{h}], spatial size: {spatial_size}, fmap_2d shape: {fmap_2d.shape}')
+                    # make_logger.info(f'For this layer--> [b,c,w,h]: [{b},{c},{w},{h}], spatial size: {spatial_size}, fmap_2d shape: {fmap_2d.shape}')
                 
                 else:
                     continue  # Skip if not 2D or 4D
@@ -72,22 +72,22 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True):
                 # Step 2: Center the 2d fmap
                 mean = tf.reduce_mean(fmap_2d, axis=0, keepdims=True) # Mean over rows (dim=0), keep dims for broadcasting
                 fmap_centered = fmap_2d - mean  # shape (n, c)
-                make_logger.info(f'For this layer--> Mean.shape: {mean.shape}, fmap_centered shape: {fmap_centered.shape}')
+                # make_logger.info(f'For this layer--> Mean.shape: {mean.shape}, fmap_centered shape: {fmap_centered.shape}')
 
 
                 # Step 3: Calculate covariance matrix
                 Covariance_matrix = tf.matmul(fmap_centered, fmap_centered, transpose_a=True) / tf.cast(tf.shape(fmap_centered)[0], tf.float32) # Covariance matrix: (c, c)
-                make_logger.info(f'For this layer--> Covariance_matrix shape: {Covariance_matrix.shape}')
+                # make_logger.info(f'For this layer--> Covariance_matrix shape: {Covariance_matrix.shape}')
 
 
                 # Step 4: Compute eigenvalues (TensorFlow 2.4+)
                 eigenvalues = tf.linalg.eigvalsh(Covariance_matrix) # shape (c,)
-                make_logger.info(f'For this layer--> eigenvalues shape: {eigenvalues.shape}')
+                # make_logger.info(f'For this layer--> eigenvalues shape: {eigenvalues.shape}')
 
 
                 # Step 5: Normalize eigenvalues to get probabilities
                 prob_s = eigenvalues / tf.reduce_sum(eigenvalues)
-                make_logger.info(f'For this layer--> prob_s shape: {prob_s.shape}')
+                # make_logger.info(f'For this layer--> prob_s shape: {prob_s.shape}')
 
 
                 # Step 6: Calculate expressivity_score using Shanon Entropy = -Seri[prob_s * log(prob_s)]
@@ -96,14 +96,13 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True):
                 score = -prob_s * tf.math.log(prob_s)
                 # Check for NaN values
                 if isinstance(score, tf.Tensor) and tf.math.reduce_any(tf.math.is_nan(score)):
-                    print("score is nan")
                     expressivity_score = -np.inf
                     Normalized_expressivity_score = -np.inf
                 else:
                     expressivity_score = tf.reduce_sum(score).numpy().item()
                     Normalized_expressivity_score = expressivity_score / tf.math.log(tf.cast(c, tf.float32)).numpy().item()
 
-                make_logger.info(f'For this layer--> Expressivity score: {expressivity_score}, Log (c): {tf.math.log(tf.cast(c, tf.float32))}, Normalized expressivity score: {Normalized_expressivity_score}')
+                # make_logger.info(f'For this layer--> Expressivity score: {expressivity_score}, Log (c): {tf.math.log(tf.cast(c, tf.float32))}, Normalized expressivity score: {Normalized_expressivity_score}')
 
                 # Store expressivity score in dictionary
                 exp_score_dict[layer_name] = {"layer_detail": layer_detail,
@@ -113,10 +112,10 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True):
                                                 "normalized_expressivity_score": Normalized_expressivity_score,
                                             }
 
-                make_logger.info(f'The score of {layer_name} was added to the dictionary')
+                # make_logger.info(f'The score of {layer_name} was added to the dictionary')
                 j += 1                    
             except Exception as e:
-                make_logger.warning(f'N.B: The score of {layer_name} was not added to the dictionary. Exception: {e}')
+                # make_logger.warning(f'N.B: The score of {layer_name} was not added to the dictionary. Exception: {e}')
                 continue
 
 
