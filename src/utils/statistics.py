@@ -51,7 +51,6 @@ def get_statistics(exp_score_dict, show_exp_score=True, trim_mean_value=0.4):
         "Normalized Expressivity Score": np.max([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()]),
     })
     # Add trim_mean
-    trim_mean_value = 0.5
     avg_row = pd.DataFrame({
         'Layer Name': ['mean'],
         'Detail': [''],
