@@ -35,7 +35,7 @@ def save_ranked_accuracies(accuracy_list, model_names_list, database_name):
     df = pd.DataFrame(sorted_acc_list, columns=["Model", "Accuracy"])
     save_dir = f"results/{database_name}/Zero_Cost_Proxy"
     os.makedirs(save_dir, exist_ok=True)
-    df.to_csv(f"{save_dir}/Grand_Truth_Accuracy.csv", mode="a", header=True, index=True)
+    df.to_csv(f"{save_dir}/Grand_Truth_Accuracy.csv", mode="a", header=True, index=False)
     make_logger.info(f"Ranked accuracies of all models saved successfully in {save_dir}/Grand_Truth_Accuracy.csv")
     return df
 
