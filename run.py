@@ -3,7 +3,7 @@ import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0" # Set this to disable oneDNN optimizations
 
 # Remove existing log file if it exists
-log_path = os.path.join("logs", "app.log")
+log_path = os.path.join("logs", "program.log")
 if os.path.exists(log_path): 
     os.remove(log_path)
 
@@ -11,7 +11,7 @@ if os.path.exists(log_path):
 from src.utils.utils import load_config_from_yaml
 from src.scores.exp_score import calculate_exp_score_nas
 import numpy as np
-from src.utils.correlation_calculator import get_kendall
+from src.utils.correlation_calculator import get_kendall,get_Spearman
 from src.utils.save_files import save_exp_score,save_ranked_accuracies,save_ranked_exp_scores
 from src.logging.logger import get_logger
 import tensorflow as tf
@@ -87,10 +87,14 @@ for model_name, expressivity_score_df in all_expressivity_score_df.items():
 ground_truth_accuracy_df = save_ranked_accuracies(ground_truth_acc_list, model_names_list, dataset_name)
 all_expressivity_score_df_ranked = save_ranked_exp_scores(method=ranking_method, score_type=ranking_type_of_score, database_name=dataset_name)
 
-################################################# Step 5: Get Tau Kendall performance #################################################
+################################################# Get Kendall and Spearman performance #################################################
 tau, p_value, merged_df = get_kendall(ground_truth_accuracy_df, all_expressivity_score_df_ranked, method=ranking_method, type_of_score=ranking_type_of_score, database_name=dataset_name)
 tau_df = pd.DataFrame({"Kendall's Tau": [tau], "p-value": [p_value]})
-tau_df.to_csv(f"results/{dataset_name}/Zero_Cost_Proxy/Kendall_Tau_performance.csv", index=True,header=True)
+tau_df.to_csv(f"results/{dataset_name}/Zero_Cost_Proxy/Kendall_performance.csv", index=False,header=True)
+
+rho, p_value, merged_df = get_Spearman(ground_truth_accuracy_df, all_expressivity_score_df_ranked, method=ranking_method, type_of_score=ranking_type_of_score, database_name=dataset_name)
+spearman_df = pd.DataFrame({"Spearman's Rho": [rho], "p-value": [p_value]})
+spearman_df.to_csv(f"results/{dataset_name}/Zero_Cost_Proxy/Spearman_performance.csv", index=False,header=True)
 
 if __name__ == "__main__":
     pass
