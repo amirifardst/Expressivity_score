@@ -1,5 +1,5 @@
 import pandas as pd
-from scipy.stats import kendalltau
+from scipy.stats import kendalltau,spearmanr
 from src.logging.logger import get_logger
 make_logger = get_logger(__name__)
 
@@ -33,7 +33,38 @@ def get_kendall(Grand_truth_accuracy_df, expressivity_score_df, method="mean", t
     tau, p_value = kendalltau(merged_df['rank_accuracy'], merged_df['rank_exp_score'])
 
     # Save the merged DataFrame to a CSV file
-    merged_df.to_csv(f'results/{database_name}/Zero_Cost_Proxy/kendall.csv', index=False)
+    merged_df.to_csv(f'results/{database_name}/Zero_Cost_Proxy/correlation.csv', index=False)
     make_logger.info(f"Kendall's Tau {tau} with p-value {p_value} correlation calculated and saved to results/{database_name}/Zero_Cost_Proxy/kendall.csv")
     print(f"Kendall's Tau correlation: {tau}, p-value: {p_value}")
     return tau, p_value, merged_df
+
+def get_Spearman(Grand_truth_accuracy_df, expressivity_score_df, method="mean", type_of_score="Normalized Expressivity Score", database_name="cifar10"):
+    """
+    This function uses Spearman's rank correlation calculation.
+    Args:
+        Grand_truth_accuracy_df (str): Path to the CSV file containing model accuracies.
+        expressivity_score_df (str): Path to the CSV file containing expressivity scores.
+        method (str): The method used for ranking (e.g., "mean").
+        type_of_score (str): The type of score used for ranking (e.g., "Normalized Expressivity Score").
+        database_name (str): The name of the database.
+    Returns:
+        rho: Spearman's Rho correlation coefficient.
+        p_value: p-value for the correlation.
+        merged_df: DataFrame containing the merged data with ranks.
+    """
+    make_logger.info("Getting spearman correlation started...")
+    #Create a Merged_df on model_name "Model" to align models present in both files
+    merged_df = pd.merge(Grand_truth_accuracy_df, expressivity_score_df, on='Model')
+
+    # Since the CSVs are sorted by accuracy and exp_score respectively,
+    # we need to assign ranks based on their order in each CSV.
+    # Assign ranks based on order in each CSV (starting from 1)
+    merged_df['rank_accuracy'] = merged_df['Accuracy'].rank(ascending=False, method='min')
+    merged_df['rank_exp_score'] = merged_df[f'{method}_{type_of_score}'].rank(ascending=False, method='min')
+
+    # Compute Kendall's Tau correlation between the two ranks
+    rho, p_value = spearmanr(merged_df['rank_accuracy'], merged_df['rank_exp_score'])
+
+    make_logger.info(f"Spearman's Rho {rho} with p-value {p_value} correlation calculated.")
+    print(f"Spearman's Rho correlation: {rho}, p-value: {p_value}")
+    return rho, p_value, merged_df
