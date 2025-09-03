@@ -6,7 +6,7 @@ from datetime import datetime
 make_logger = get_logger(__name__)
 
 
-def save_exp_score(exp_score_df, model_name, database_name):
+def save_exp_score(exp_score_df, model_name, database_name,run_verstion):
     """
     This function saves the expressivity score DataFrame of each model to a CSV file located in the results directory/<database_name>/<model_name>.
     Args:
@@ -15,12 +15,12 @@ def save_exp_score(exp_score_df, model_name, database_name):
         database_name (str): The name of the database.
     """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    save_dir = f"results/{database_name}/{model_name}"
+    save_dir = f"results/{database_name}/{run_verstion}/{model_name}"
     os.makedirs(save_dir, exist_ok=True)
     exp_score_df.to_csv(f"{save_dir}/{model_name}_{timestamp}_score.csv", mode="a", header=True, index=True)
     make_logger.info(f"Expressivity scores of model {model_name} saved successfully.")
 
-def save_ranked_accuracies(accuracy_list, model_names_list, database_name):
+def save_ranked_accuracies(accuracy_list, model_names_list, database_name,run_version):
     """
     This function saves all model accuracies to a csv file in ranked order.
     Args:
@@ -33,13 +33,13 @@ def save_ranked_accuracies(accuracy_list, model_names_list, database_name):
     """
     sorted_acc_list = sorted(zip(model_names_list, accuracy_list), key=lambda x: x[1], reverse=True)
     df = pd.DataFrame(sorted_acc_list, columns=["Model", "Accuracy"])
-    save_dir = f"results/{database_name}/Zero_Cost_Proxy"
+    save_dir = f"results/{database_name}/{run_version}/Zero_Cost_Proxy"
     os.makedirs(save_dir, exist_ok=True)
     df.to_csv(f"{save_dir}/Ranked_Grand_Truth_Accuracy.csv", mode="a", header=True, index=False)
     make_logger.info(f"Ranked accuracies of all models saved successfully in {save_dir}/Ranked_Grand_Truth_Accuracy.csv")
     return df
 
-def save_ranked_exp_scores(method="mean", score_type="Normalized Expressivity Score", database_name="cifar10"):
+def save_ranked_exp_scores(method="mean", score_type="Normalized Expressivity Score", database_name="cifar10",run_version='v_01'):
     """
     This function saves the ranked expressivity scores DataFrame to a CSV file.
     Args:
@@ -51,7 +51,7 @@ def save_ranked_exp_scores(method="mean", score_type="Normalized Expressivity Sc
     """
 
     # Path to the results directory
-    results_dir = f'results/{database_name}'
+    results_dir = f'results/{database_name}/{run_version}'
     nas_dir = os.path.join(results_dir, 'Zero_Cost_Proxy')
     os.makedirs(nas_dir, exist_ok=True)
 
