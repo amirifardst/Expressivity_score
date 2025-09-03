@@ -7,7 +7,7 @@ from src.utils.statistics import get_statistics
 make_logger = get_logger(__name__)
 
 
-def calculate_exp_score_nas(fmap_dict, show_exp_score=True):
+def calculate_exp_score_nas(fmap_dict, show_exp_score=True, method ="trim_mean",trim_mean_value=None):
     """
     This function calculates the expressivity score of each model.
 
@@ -123,7 +123,7 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True):
         make_logger.info('-'*50)  
 
         # Save also some statistics of expressivity scores in the dataframe
-        exp_score_df = get_statistics(exp_score_dict, show_exp_score=show_exp_score)
+        exp_score_df = get_statistics(exp_score_dict, show_exp_score, method, trim_mean_value)
 
         all_exp_score_dict[architectures[i]] = exp_score_df
 

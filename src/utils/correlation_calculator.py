@@ -1,11 +1,12 @@
 import pandas as pd
 from scipy.stats import kendalltau,spearmanr
 from src.logging.logger import get_logger
+from src.utils.utils import plot_correlation_performamce
 make_logger = get_logger(__name__)
 
 
 # Load the CSV files
-def get_kendall(Grand_truth_accuracy_df, expressivity_score_df, method="mean", type_of_score="Normalized Expressivity Score", database_name="cifar10"):
+def get_kendall(Grand_truth_accuracy_df, expressivity_score_df, method="mean", type_of_score="Normalized Expressivity Score", database_name="cifar10", run_version="v_01"):
     """
     Calculate Kendall's Tau correlation between model accuracy and expressivity scores .
     Args:
@@ -33,12 +34,14 @@ def get_kendall(Grand_truth_accuracy_df, expressivity_score_df, method="mean", t
     tau, p_value = kendalltau(merged_df['rank_accuracy'], merged_df['rank_exp_score'])
 
     # Save the merged DataFrame to a CSV file
-    merged_df.to_csv(f'results/{database_name}/Zero_Cost_Proxy/correlation.csv', index=False)
+    merged_df.to_csv(f'results/{database_name}/{run_version}/Zero_Cost_Proxy/correlation.csv', index=False)
     make_logger.info(f"Kendall's Tau {tau} with p-value {p_value} correlation calculated and saved to results/{database_name}/Zero_Cost_Proxy/kendall.csv")
     print(f"Kendall's Tau correlation: {tau}, p-value: {p_value}")
+    plot_correlation_performamce(predicted_ranking = merged_df['rank_accuracy'] , ground_truth_ranking=merged_df['rank_exp_score'],save_path=f'results/{database_name}/{run_version}/Zero_Cost_Proxy/correlation.png')
+    
     return tau, p_value, merged_df
 
-def get_Spearman(Grand_truth_accuracy_df, expressivity_score_df, method="mean", type_of_score="Normalized Expressivity Score", database_name="cifar10"):
+def get_Spearman(Grand_truth_accuracy_df, expressivity_score_df, method="mean", type_of_score="Normalized Expressivity Score", database_name="cifar10", run_version="v_01"):
     """
     This function uses Spearman's rank correlation calculation.
     Args:
