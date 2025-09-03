@@ -5,7 +5,7 @@ from src.logging.logger import get_logger
 make_logger = get_logger(__name__)
 from scipy.stats import trim_mean
 
-def get_statistics(exp_score_dict, show_exp_score=True, trim_mean_value=0.4):
+def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim_mean_value= 0.4):
     """
     This function calculates statistics from the expressivity score dictionary for each model.
     Args:
@@ -51,15 +51,26 @@ def get_statistics(exp_score_dict, show_exp_score=True, trim_mean_value=0.4):
         "Normalized Expressivity Score": np.max([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()]),
     })
     # Add trim_mean
-    avg_row = pd.DataFrame({
-        'Layer Name': ['mean'],
-        'Detail': [''],
-        'Spatial Size': np.mean([int(v['spatial_size']) for v in exp_score_dict.values()]),
-        'Number of Channels': np.mean([int(v['num_channels']) for v in exp_score_dict.values()]),
-        'Log (c)': np.mean([float(v['log_c']) for v in exp_score_dict.values()]),
-        'Expressivity Score': trim_mean([float(v['expressivity_score']) for v in exp_score_dict.values()], trim_mean_value),
-        "Normalized Expressivity Score": trim_mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()], trim_mean_value),
-        })
+    if method == "trim_mean":
+        avg_row = pd.DataFrame({
+            'Layer Name': ['trim_mean'],
+            'Detail': [''],
+            'Spatial Size': np.mean([int(v['spatial_size']) for v in exp_score_dict.values()]),
+            'Number of Channels': np.mean([int(v['num_channels']) for v in exp_score_dict.values()]),
+            'Log (c)': np.mean([float(v['log_c']) for v in exp_score_dict.values()]),
+            'Expressivity Score': trim_mean([float(v['expressivity_score']) for v in exp_score_dict.values()], trim_mean_value),
+            "Normalized Expressivity Score": trim_mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()], trim_mean_value),
+            })
+    elif method == "mean":
+            avg_row = pd.DataFrame({
+            'Layer Name': ['mean'],
+            'Detail': [''],
+            'Spatial Size': np.mean([int(v['spatial_size']) for v in exp_score_dict.values()]),
+            'Number of Channels': np.mean([int(v['num_channels']) for v in exp_score_dict.values()]),
+            'Log (c)': np.mean([float(v['log_c']) for v in exp_score_dict.values()]),
+            'Expressivity Score': np.mean([float(v['expressivity_score']) for v in exp_score_dict.values()]),
+            "Normalized Expressivity Score": np.mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()])
+            })  
 
     # add median
     median_row = pd.DataFrame({
