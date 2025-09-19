@@ -10,19 +10,23 @@ if os.path.exists(log_path):
 ################################################# Import necessary modules #################################################
 from src.utils.utils import load_config_from_yaml
 from src.scores.exp_score import calculate_exp_score_nas
+
 import numpy as np
-from src.utils.correlation_calculator import get_kendall,get_Spearman
-from src.utils.save_files import save_exp_score,save_ranked_accuracies,save_ranked_exp_scores
+from src.utils.correlation_calculator import get_kendall_for_exp,get_Spearman_for_exp,get_kendall_for_prog,get_Spearman_for_prog,get_kendall_for_both
+from src.utils.save_files import save_exp_score,save_ranked_accuracies,save_ranked_exp_scores,save_ranked_prog_scores
 from src.logging.logger import get_logger
 from src.utils.get_feature_maps import connect_api, extract_feature_maps,show_model_summary
 import tensorflow as tf
 import random, shutil,torch,warnings
 import pandas as pd
+import time
+from src.utils.aggregation import aggregate_results
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 make_logger = get_logger(__name__)
 
 ################################################# Set random seed #################################################
+start = time.time()
 seed_value = 42  # If you don't set the seed, you will get different results every time
 random.seed(seed_value)                    
 np.random.seed(seed_value)              
@@ -58,25 +62,31 @@ model_names_list, ground_truth_acc_list, fmap_dict = extract_feature_maps(API, n
 all_expressivity_score_df = calculate_exp_score_nas(fmap_dict = fmap_dict,
                                                  show_exp_score=False,method=method,trim_mean_value = trim_mean_value)
                                                 
-
 ################################################# Save expressivity score for each model in specific dataset #################################################
 for model_name, expressivity_score_df in all_expressivity_score_df.items():
     save_exp_score(expressivity_score_df, model_name, dataset_name,run_version) # This saves the expressivity score for each model in folder results/<dataset_name>/<model_name>
 
-################################################# Save sorted grand_truthaccuracy and expressivity score of all models #################################################
+################################################# Save sorted grand_truthaccuracy and expressivity  score of all models #################################################
 ground_truth_accuracy_df = save_ranked_accuracies(ground_truth_acc_list, model_names_list, dataset_name,run_version)
 all_expressivity_score_df_ranked = save_ranked_exp_scores(method=method, score_type=ranking_type_of_score, database_name=dataset_name,run_version=run_version)
 
 ################################################# Get Kendall and Spearman performance #################################################
-tau, p_value, merged_df = get_kendall(ground_truth_accuracy_df, all_expressivity_score_df_ranked, method=method, type_of_score=ranking_type_of_score, database_name=dataset_name,run_version= run_version)
+tau, p_value, merged_df = get_kendall_for_exp(ground_truth_accuracy_df, all_expressivity_score_df_ranked, method=method, type_of_score=ranking_type_of_score, database_name=dataset_name,run_version= run_version)
 tau_df = pd.DataFrame({"Kendall's Tau": [tau], "p-value": [p_value]})
-tau_df.to_csv(f"results/{dataset_name}/{run_version}/Zero_Cost_Proxy/Kendall_performance.csv", index=False,header=True)
+tau_df.to_csv(f"results/{dataset_name}/{run_version}/Zero_Cost_Proxy/Expressivity_Kendall_performance.csv", index=False,header=True)
 
-rho, p_value, merged_df = get_Spearman(ground_truth_accuracy_df, all_expressivity_score_df_ranked, method=method, type_of_score=ranking_type_of_score, database_name=dataset_name)
+
+rho, p_value, merged_df = get_Spearman_for_exp(ground_truth_accuracy_df, all_expressivity_score_df_ranked, method=method, type_of_score=ranking_type_of_score, database_name=dataset_name)
 spearman_df = pd.DataFrame({"Spearman's Rho": [rho], "p-value": [p_value]})
-spearman_df.to_csv(f"results/{dataset_name}/{run_version}/Zero_Cost_Proxy/Spearman_performance.csv", index=False,header=True)
+spearman_df.to_csv(f"results/{dataset_name}/{run_version}/Zero_Cost_Proxy/Expressivity_Spearman_performance.csv", index=False,header=True)
 
 shutil.copy("config/config.yaml",f"results/{dataset_name}/{run_version}") # copy config to the direcotry.
 
+stop = time.time()
+################################################# Get Run time #################################################
+
+runtime = int((stop-start))
+runtime_df = pd.DataFrame({"runtime(Seconds)":[runtime]})
+runtime_df.to_csv(f"results/{dataset_name}/{run_version}/Zero_Cost_Proxy/runtime.csv",index=False,header=True)
 if __name__ == "__main__":
     pass

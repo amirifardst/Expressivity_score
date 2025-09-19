@@ -18,6 +18,8 @@ def load_config_from_yaml(path):
     return config_dict
 
 def plot_correlation_performamce(predicted_ranking, ground_truth_ranking, save_path):
+    """
+    """
     fig, ax = plt.subplots(figsize=(15, 10))
     x = predicted_ranking
     y = ground_truth_ranking

@@ -29,7 +29,8 @@ def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim
     })
 
 
-    # Add min value to the DataFrame
+
+    
     min_row = pd.DataFrame({
         'Layer Name': ['min'],
         'Detail': [''],
@@ -39,6 +40,8 @@ def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim
         'Expressivity Score': np.min([float(v['expressivity_score']) for v in exp_score_dict.values()]),
         "Normalized Expressivity Score": np.min([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()]),
     })
+
+
 
     #add max value to the DataFrame
     max_row = pd.DataFrame({
@@ -52,6 +55,8 @@ def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim
     })
     # Add trim_mean
     if method == "trim_mean":
+        trim_mean_score = trim_mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()], trim_mean_value) 
+        assert isinstance(trim_mean_score,float)
         avg_row = pd.DataFrame({
             'Layer Name': ['trim_mean'],
             'Detail': [''],
@@ -59,9 +64,11 @@ def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim
             'Number of Channels': np.mean([int(v['num_channels']) for v in exp_score_dict.values()]),
             'Log (c)': np.mean([float(v['log_c']) for v in exp_score_dict.values()]),
             'Expressivity Score': trim_mean([float(v['expressivity_score']) for v in exp_score_dict.values()], trim_mean_value),
-            "Normalized Expressivity Score": trim_mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()], trim_mean_value),
+            "Normalized Expressivity Score":trim_mean_score ,
             })
     elif method == "mean":
+            mean_score = np.mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()])
+            assert isinstance(mean_score,float)
             avg_row = pd.DataFrame({
             'Layer Name': ['mean'],
             'Detail': [''],
@@ -69,7 +76,7 @@ def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim
             'Number of Channels': np.mean([int(v['num_channels']) for v in exp_score_dict.values()]),
             'Log (c)': np.mean([float(v['log_c']) for v in exp_score_dict.values()]),
             'Expressivity Score': np.mean([float(v['expressivity_score']) for v in exp_score_dict.values()]),
-            "Normalized Expressivity Score": np.mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()])
+            "Normalized Expressivity Score":mean_score ,
             })  
 
     # add median
@@ -91,7 +98,7 @@ def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim
         'Log (c)': np.std([float(v['log_c']) for v in exp_score_dict.values()]),
         'Expressivity Score': np.std([float(v['expressivity_score']) for v in exp_score_dict.values()]),
         "Normalized Expressivity Score": np.std([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()]),
-    })
+    })  
     exp_score_df = pd.concat([exp_score_df, min_row, max_row, avg_row, median_row, std_row], ignore_index=True)
 
     if show_exp_score:

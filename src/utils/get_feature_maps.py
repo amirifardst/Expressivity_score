@@ -159,5 +159,3 @@ def extract_feature_maps(API, num_models_to_evaluate, database, random_input):
     make_logger.info(f"Feature maps extraction for {num_models_to_evaluate} models from database {database} completed.")
     return model_names_list, ground_truth_acc_list, fmap_dict
 
-
-

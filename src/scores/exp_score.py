@@ -103,6 +103,8 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True, method ="trim_mean",
                     Normalized_expressivity_score = expressivity_score / tf.math.log(tf.cast(c, tf.float32)).numpy().item()
 
                 # make_logger.info(f'For this layer--> Expressivity score: {expressivity_score}, Log (c): {tf.math.log(tf.cast(c, tf.float32))}, Normalized expressivity score: {Normalized_expressivity_score}')
+                
+
 
                 # Store expressivity score in dictionary
                 exp_score_dict[layer_name] = {"layer_detail": layer_detail,
