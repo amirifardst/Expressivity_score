@@ -4,17 +4,20 @@ import pandas as pd
 import numpy as np
 import os
 from src.utils.statistics import get_statistics
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 make_logger = get_logger(__name__)
 
 
-def calculate_exp_score_nas(fmap_dict, show_exp_score=True, method ="trim_mean",trim_mean_value=None):
+def calculate_exp_score_nas(fmap_dict, show_exp_score=True, dataset_name='cifar10', method ="trim_mean",trim_mean_value=None):
     """
     This function calculates the expressivity score of each model.
 
     Args: 
         fmap_dict: feature map dictionary, including model/models feature maps
         show_exp_score : Whether to display the expressivity score
-
+        dataset_name: name of dataset we are working on
+        method: the way we are doing the mean
+        trim_mean_value: the value we use to do trimming
     Returns:
         all_exp_score_dict: A dictionary containing the expressivity scores and some statistics for each architecture
 
@@ -47,12 +50,20 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True, method ="trim_mean",
 
                 # check if fmap is a TensorFlow tensor
                 if not isinstance(fmap, tf.Tensor):
+                    model_type = "keras"
+                    if hasattr(fmap, 'detach'):  # Check if fmap is a PyTorch tensor with gradients
+                        model_type = 'torch'
+                        fmap = fmap.detach().numpy()  # Detach and convert to NumPy
                     fmap = tf.convert_to_tensor(fmap, dtype=tf.float32)
 
                 # Start Calculation
                 # Step1: Reshaping fmap to 2d dimensions
                 if fmap.ndim == 4: # If fmap is 4D
-                    b, c, w, h = fmap.shape # b=batch_size, c=num_channels, w=width, h=height
+                    if model_type=="torch":
+                        b, c, h, w = fmap.shape # b=batch_size, c=num_channels, w=width, h=height
+                    elif model_type=='keras':
+                        b,h,w,c = fmap.shape
+                    
                     spatial_size = w * h
                     n = b * w * h
                     fmap_2d = tf.reshape(fmap, (n, c))
@@ -64,7 +75,16 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True, method ="trim_mean",
                     spatial_size = 1 
                     fmap_2d = fmap
                     # make_logger.info(f'For this layer--> [b,c,w,h]: [{b},{c},{w},{h}], spatial size: {spatial_size}, fmap_2d shape: {fmap_2d.shape}')
-                
+                elif fmap.ndim == 3: # If fmap is 3D, assume shape is [b,n,c]
+                    if model_type=="keras":
+                        b, h, c = fmap.shape
+                    elif model_type=="torch":
+                        b, c, h = fmap.shape
+                    
+                    spatial_size = h
+                    n = b * h
+                    fmap_2d = tf.reshape(fmap, (n, c))
+
                 else:
                     continue  # Skip if not 2D or 4D
 
@@ -95,9 +115,9 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True, method ="trim_mean",
 
                 score = -prob_s * tf.math.log(prob_s)
                 # Check for NaN values
-                if isinstance(score, tf.Tensor) and tf.math.reduce_any(tf.math.is_nan(score)):
-                    expressivity_score = -np.inf
-                    Normalized_expressivity_score = -np.inf
+                if isinstance(score, tf.Tensor) and (tf.math.reduce_any(tf.math.is_nan(score)) or tf.math.reduce_any(tf.math.is_inf(score))):
+                    expressivity_score = 0
+                    Normalized_expressivity_score = 0
                 else:
                     expressivity_score = tf.reduce_sum(score).numpy().item()
                     Normalized_expressivity_score = expressivity_score / tf.math.log(tf.cast(c, tf.float32)).numpy().item()
@@ -117,6 +137,7 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True, method ="trim_mean",
                 # make_logger.info(f'The score of {layer_name} was added to the dictionary')
                 j += 1                    
             except Exception as e:
+                print(e)
                 # make_logger.warning(f'N.B: The score of {layer_name} was not added to the dictionary. Exception: {e}')
                 continue
 
@@ -125,7 +146,7 @@ def calculate_exp_score_nas(fmap_dict, show_exp_score=True, method ="trim_mean",
         make_logger.info('-'*50)  
 
         # Save also some statistics of expressivity scores in the dataframe
-        exp_score_df = get_statistics(exp_score_dict, show_exp_score, method, trim_mean_value)
+        exp_score_df = get_statistics(dataset_name,exp_score_dict, show_exp_score, method, trim_mean_value)
 
         all_exp_score_dict[architectures[i]] = exp_score_df
 

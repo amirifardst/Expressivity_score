@@ -4,11 +4,11 @@ import tarfile
 from src.logging.logger import get_logger
 from nats_bench import create
 from nats_bench.api_utils import time_string
-import os
 from xautodl.models import get_cell_based_tiny_net,get_cifar_models
 import torchinfo
 import requests
 from tqdm import tqdm
+from tensorflow.keras.models import Model
 make_logger = get_logger(__name__)
 
 # Download dataset of NATS-tss-v1_0-3ffb9-simple.tar
@@ -55,7 +55,6 @@ def connect_api():
     make_logger.info(f"API created with {len(API)} architectures successfully.")
     return API
 
-
 def show_model_summary(API, model_number, database='cifar10'):
     """
     This function shows the summary of a model from the NATS-Bench API.
@@ -70,7 +69,6 @@ def show_model_summary(API, model_number, database='cifar10'):
     # Show model summary
     # summary(model, input_size=(3, 32, 32))
     torchinfo.summary(model,depth=20, input_size=(1, 3, 32, 32), col_names=["input_size", "output_size", "num_params", "trainable"], row_settings=["var_names"])
-
 
 def get_layer_fmap_list(feature_maps, model):
     """
@@ -103,11 +101,11 @@ def get_layer_fmap_list(feature_maps, model):
 
     return (layer_names_sorted, layer_details, fmap_list)
 
-
-def extract_feature_maps(API, num_models_to_evaluate, database, random_input):
+def extract_feature_maps_evaluation(API, num_models_to_evaluate, database, random_input):
     """
-    This function extracts feature maps for multiple models from a database
+    This function extracts feature maps for multiple models from a database in evaluation mode
     Args:
+        API
         num_models_to_evaluate (int): The number of models to evaluate.
         database (str): The database to extract models from.
         random_input (torch.Tensor): A random input tensor to pass through the model.
@@ -159,3 +157,85 @@ def extract_feature_maps(API, num_models_to_evaluate, database, random_input):
     make_logger.info(f"Feature maps extraction for {num_models_to_evaluate} models from database {database} completed.")
     return model_names_list, ground_truth_acc_list, fmap_dict
 
+# Function to extract feature maps from the model
+def extract_feature_maps_from_torch(model, x):
+    """
+    Extract feature maps from all leaf layers in the model.
+    
+    Args:
+        model: Keras model instance.
+        x: Input numpy array or tensor with shape (batch_size, h, w, c).
+        
+    Returns:
+        Dictionary mapping layer name to output feature map numpy array.
+    """
+    fmap_dict= {}
+    fmap_list = []
+    
+    def hook(module, input, output):
+        fmap_list.append(output)
+    
+    # Register hooks to capture the output of each layer
+    hooks = []
+    layer_names_sorted = []
+    layer_details = []
+    for i, layer in enumerate(model.children()):
+        layer_names_sorted.append(f"Layer_{i}")
+        layer_detail = f"Layer_{i}_{layer.__class__.__name__}"
+        layer_details.append(layer_detail)
+        hooks.append(layer.register_forward_hook(hook))
+    
+    # Forward pass through the model
+    model(x)
+    
+    # Remove hooks after capturing the feature maps
+    for h in hooks:
+        h.remove()
+    
+
+    fmap_dict['input_model'] = {
+            'layer_names': layer_names_sorted,
+            'layer_details': layer_details,
+            'fmap_list': fmap_list}
+    return fmap_dict
+
+def extract_feature_maps_from_keras(model, x):
+    """
+    Extract feature maps from all leaf layers in the model.
+    
+    Args:
+        model: Keras model instance.
+        x: Input numpy array or tensor with shape (batch_size, h, w, c).
+        
+    Returns:
+        Dictionary mapping layer name to output feature map numpy array.
+    """
+    # Initialize dictionaries and lists to store feature maps and layer details
+    fmap_dict = {}
+    fmap_list = []
+    layer_names_sorted = []
+    layer_details = []
+
+    # Iterate through all layers in the model
+    for i, layer in enumerate(model.layers):
+        layer_name = f"Layer_{i}"
+        layer_detail = f"Layer_{i}_{layer.__class__.__name__}"
+        layer_names_sorted.append(layer_name)
+        layer_details.append(layer_detail)
+
+        # Create a sub-model for the current layer to extract its output
+        intermediate_model = Model(inputs=model.input, outputs=layer.output)
+
+        # Run forward pass to get the feature map for the current layer
+        feature_map = intermediate_model.predict(x)
+        # shape = feature_map.shape
+        fmap_list.append(feature_map)
+
+    # Store the extracted feature maps and layer details in the dictionary
+    fmap_dict['input_model'] = {
+        'layer_names': layer_names_sorted,
+        'layer_details': layer_details,
+        'fmap_list': fmap_list
+    }
+
+    return fmap_dict

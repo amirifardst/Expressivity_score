@@ -5,12 +5,15 @@ from src.logging.logger import get_logger
 make_logger = get_logger(__name__)
 from scipy.stats import trim_mean
 
-def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim_mean_value= 0.4):
+def get_statistics(dataset_name,exp_score_dict, show_exp_score=True, method="trim_mean", trim_mean_value= 0.4):
     """
     This function calculates statistics from the expressivity score dictionary for each model.
     Args:
+        dataset_name : the name of dataset we are working on
         exp_score_dict: A Dictionary containing expressivity scores for each layer of the model.
         show_exp_score: A Boolean to control whether to print the DataFrame.
+        method: the name of method we used to do mean
+        trim_mean_value: the value we use to calculate trim-mean
     Returns:
         exp_score_df: Expressivity DataFrame with statistics.
     """
@@ -55,8 +58,11 @@ def get_statistics(exp_score_dict, show_exp_score=True, method="trim_mean", trim
     })
     # Add trim_mean
     if method == "trim_mean":
-        trim_mean_score = trim_mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()], trim_mean_value) 
-        assert isinstance(trim_mean_score,float)
+        if dataset_name in ["cifar10","cifar100","ImageNet16-120"]:
+            trim_mean_score = trim_mean([float(v['normalized_expressivity_score']) for v in exp_score_dict.values()], trim_mean_value) 
+        else:
+            trim_mean_score = trim_mean([float(v['normalized_expressivity_score']) if float(v['normalized_expressivity_score']) != -np.inf else 0 for v in exp_score_dict.values()], 0.2)
+            assert isinstance(trim_mean_score,float)
         avg_row = pd.DataFrame({
             'Layer Name': ['trim_mean'],
             'Detail': [''],

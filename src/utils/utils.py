@@ -2,6 +2,8 @@ import yaml
 from src.logging.logger import get_logger
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 make_logger = get_logger(__name__)
 
 def load_config_from_yaml(path):
@@ -19,6 +21,12 @@ def load_config_from_yaml(path):
 
 def plot_correlation_performamce(predicted_ranking, ground_truth_ranking, save_path):
     """
+    This function plots the correlation performance and save it.
+    Args:
+        predicted_ranking: the ranking predicted by zero-cost proxy method
+        ground_truth_ranking: the ranking of models got from NATS Benchmark,
+        save_path: the path we want to save this plot
+        
     """
     fig, ax = plt.subplots(figsize=(15, 10))
     x = predicted_ranking

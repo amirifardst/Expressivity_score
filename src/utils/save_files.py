@@ -13,6 +13,7 @@ def save_exp_score(exp_score_df, model_name, database_name,run_verstion):
         exp_score_df (DataFrame): The expressivity score DataFrame to save.
         model_name (str): The name of the model.
         database_name (str): The name of the database.
+        run_version: the version you are working on
     """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     save_dir = f"results/{database_name}/{run_verstion}/{model_name}"
@@ -27,6 +28,7 @@ def save_ranked_accuracies(accuracy_list, model_names_list, database_name,run_ve
         accuracy_list (list): The list of accuracies of the models.
         model_names_list (list): The list of model names.
         database_name (str): The name of the database.
+        run_version: the version you are working on
     Returns:
         accuracy_df (DataFrame): DataFrame containing model names and their accuracies.
 
@@ -47,6 +49,7 @@ def save_ranked_exp_scores(method="mean", score_type="Normalized Expressivity Sc
         method (str): The method used for ranking (e.g., "mean").
         score_type (str): The type of score used for ranking (e.g., "Normalized Expressivity Score").
         database_name (str): The name of the database.
+        run_version: the version you are working on
     Returns:
         scores_df (DataFrame): DataFrame containing the ranked expressivity scores.
     """
@@ -84,7 +87,6 @@ def save_ranked_exp_scores(method="mean", score_type="Normalized Expressivity Sc
 
     return scores_df
 
-
 def save_ranked_prog_scores(method="min", score_type="Progressivity_score", database_name="cifar10",run_version='v_01'):
     """
     This function saves the ranked expressivity scores DataFrame to a CSV file.
@@ -92,6 +94,7 @@ def save_ranked_prog_scores(method="min", score_type="Progressivity_score", data
         method (str): The method used for ranking (e.g., "mean").
         score_type (str): The type of score used for ranking (e.g., "Normalized Expressivity Score").
         database_name (str): The name of the database.
+        run_version: the version you are working on
     Returns:
         scores_df (DataFrame): DataFrame containing the ranked expressivity scores.
     """
