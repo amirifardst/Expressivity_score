@@ -39,7 +39,3 @@ class SimpleCIFAR100Model_torch(nn.Module):
         x = self.fc2(x)  # Note: no softmax here, outputs logits
         
         return x
-
-
-
-# Second model
