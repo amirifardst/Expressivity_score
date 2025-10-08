@@ -1,8 +1,9 @@
 # config.yaml
-model_type : "torch"  # Specify the model framework. Use 'torch' for evaluation mode, otherwise indicate the appropriate model type (e.g., 'keras').
+# If you want to test the model, you need to paste the model structure in ./src/models/... and change the lines 44 to 51 in inference.py file. 
+model_type : "keras"  # Specify the model framework. Use 'torch' for evaluation mode, otherwise indicate the appropriate model type (e.g., 'keras').
 dataset:
   name: "Inference"  # For evaluation mode, select from ["cifar10", "cifar100", "ImageNet16-120"]. For inference mode, specify "Inference".
-  input_shape: [3, 32, 32]  # In evaluation mode, use [3, 32, 32] representing [channels, height, width]. For inference mode, provide the model's input dimensions (e.g., [640, 1], [49, 10, 1]).
+  input_shape: [256, 256, 3]  # In evaluation mode, use [3, 32, 32] representing [channels, height, width]. For inference mode, provide the model's input dimensions (e.g., [640, 1], [49, 10, 1]).
   num_models_to_evaluate: 1 # Set to 200 for evaluation mode; use 1 for inference mode.
   batch_size: 16  # This parameter should remain unchanged.
 
