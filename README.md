@@ -1,3 +1,8 @@
+## Setup and Run Instructions
+
+Follow these steps to create a clean environment, install dependencies, and run the inference script:
+
+```bash
 # 1. Create a new Conda environment with Python 3.9.23
 conda create -n exp_env python=3.9.23 -y
 
@@ -15,7 +20,3 @@ pip install -r requirements.txt
 
 # 6. Run the inference script
 python inference.py
-
-
-
-
