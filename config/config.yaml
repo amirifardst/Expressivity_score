@@ -1,0 +1,16 @@
+# config.yaml
+model_type : "torch"  # Specify the model framework. Use 'torch' for evaluation mode, otherwise indicate the appropriate model type (e.g., 'keras').
+dataset:
+  name: "Inference"  # For evaluation mode, select from ["cifar10", "cifar100", "ImageNet16-120"]. For inference mode, specify "Inference".
+  input_shape: [3, 32, 32]  # In evaluation mode, use [3, 32, 32] representing [channels, height, width]. For inference mode, provide the model's input dimensions (e.g., [640, 1], [49, 10, 1]).
+  num_models_to_evaluate: 1 # Set to 200 for evaluation mode; use 1 for inference mode.
+  batch_size: 16  # This parameter should remain unchanged.
+
+ranking:
+  method: "trim_mean"  # This parameter should remain unchanged.
+  type_of_score: "Normalized Expressivity Score"  # This parameter should remain unchanged.
+
+run_conf:
+  run_version : "v_150"  # Increment this value for subsequent runs of the model.
+  trim_mean_value : 0.45  # This parameter should remain unchanged.
+
